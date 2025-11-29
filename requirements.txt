@@ -1,0 +1,7 @@
+fastapi
+uvicorn
+azure-storage-file-datalake
+python-dotenv
+python-multipart
+requests
+aiofiles

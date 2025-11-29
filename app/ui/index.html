@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Data Transfiguration - Ingesta</title>
+    <link rel="stylesheet" href="/ui/css/styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="logo-area">
+                <h1>Data Transfiguration <span class="badge">V3 Pipeline</span></h1>
+            </div>
+            <p class="subtitle">Ingesta Universal & Arquitectura Medallion (Azure + Fabric)</p>
+        </header>
+
+        <section class="card upload-section">
+            <h2>1. Ingesta a Bronze</h2>
+            <div id="drop-area">
+                <div class="icon-upload">☁️</div>
+                <p>Arrastra tus archivos aquí (Maestro .csv, Órdenes .pdf)</p>
+                <input type="file" id="fileElem" multiple accept=".xlsx, .xlsm, .pdf, .csv">
+                <label class="btn-secondary" for="fileElem">Seleccionar Archivos</label>
+            </div>
+            <div id="gallery"></div>
+            <button id="uploadBtn" class="btn-primary" disabled>
+                Subir a Azure Storage
+            </button>
+        </section>
+
+        <hr class="divider">
+
+        <section class="grid-layout">
+            <div class="card">
+                <div class="card-header">
+                    <h2>2. Archivos en Bronze</h2>
+                    <button id="refreshFilesBtn" class="btn-icon" title="Actualizar lista">↻</button>
+                </div>
+                <ul id="fileList" class="file-list">
+                    <li class="empty-state">Cargando archivos...</li>
+                </ul>
+            </div>
+
+            <div class="card execution-card">
+                <h2>3. Ejecución del Pipeline</h2>
+                <p class="info-text">
+                    Los archivos cargados aquí se sincronizan automáticamente con el <strong>Lakehouse</strong>.
+                </p>
+                
+                <div class="instruction-box">
+                    <h3>🚀 Pasos para procesar:</h3>
+                    <ol>
+                        <li>Verifica que tus archivos aparezcan en la lista de la izquierda.</li>
+                        <li>Ve a tu <strong>Notebook en Microsoft Fabric</strong>.</li>
+                        <li>Ejecuta el botón <strong>"Run All"</strong>.</li>
+                        <li>Revisa la carpeta <strong>Gold</strong> para ver los resultados.</li>
+                    </ol>
+                </div>
+
+                <a href="https://app.fabric.microsoft.com/" target="_blank" class="btn-action">
+                    IR A MICROSOFT FABRIC ↗
+                </a>
+            </div>
+        </section>
+    </div>
+    <script src="/ui/js/main.js"></script>
+</body>
+</html>
