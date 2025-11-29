@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Desafío Data Transfiguration - PUCE</title>
+    <style>
+        /* CSS Integrado - Tema PUCE */
+        :root {
+            --puce-blue: #003366;        /* Azul Marino Oscuro (Primary) */
+            --puce-gold: #FFCC00;        /* Dorado/Amarillo (Accent) */
+            --bg-color: #f0f4f7;         /* Fondo muy suave */
+            --card-bg: #ffffff;
+            --text-main: #212121;
+            --success: #388E3C;          /* Verde para éxito */
+            --error: #D32F2F;            /* Rojo para error */
+            --shadow-light: 0 4px 12px rgba(0, 0, 0, 0.1);
+            --font-family: 'Segoe UI', 'Roboto', 'Helvetica Neue', sans-serif;
+        }
+
+        body {
+            font-family: var(--font-family);
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .quiz-container {
+            width: 90%;
+            max-width: 700px; /* Un poco más ancho */
+            background-color: var(--card-bg);
+            border-radius: 10px;
+            box-shadow: var(--shadow-light);
+            padding: 40px 30px;
+            text-align: center;
+        }
+
+        h1 {
+            color: var(--puce-blue);
+            margin-bottom: 30px;
+            font-size: 2rem;
+            border-bottom: 3px solid var(--puce-gold);
+            padding-bottom: 10px;
+        }
+
+        /* Área de Pregunta */
+        #question-area {
+            background-color: var(--puce-blue);
+            color: white;
+            padding: 30px;
+            border-radius: 8px;
+            margin-bottom: 25px;
+            font-size: 1.3rem;
+            min-height: 100px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 0px rgba(0, 51, 102, 0.5); /* Sombra 3D */
+        }
+
+        /* Opciones de Respuesta */
+        #options-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .option-btn {
+            background-color: var(--puce-blue);
+            color: white;
+            border: none;
+            padding: 15px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: transform 0.15s, opacity 0.2s, background-color 0.2s;
+            text-align: center;
+            box-shadow: 0 4px 0 #002244;
+        }
+
+        .option-btn:hover:not(:disabled) {
+            background-color: #004d99;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 0 #002244;
+        }
+
+        /* Estados de Respuesta */
+        .option-btn.correct {
+            background-color: var(--success);
+            box-shadow: 0 4px 0 #2a6a2c;
+        }
+        .option-btn.wrong {
+            background-color: var(--error);
+            box-shadow: 0 4px 0 #a22121;
+        }
+        .option-btn:disabled {
+            opacity: 0.9;
+            cursor: not-allowed;
+            box-shadow: 0 4px 0 #002244;
+        }
+
+        /* Puntuación y Botón Siguiente */
+        #score-area {
+            font-size: 1.2rem;
+            color: var(--puce-blue);
+            margin-bottom: 20px;
+            font-weight: bold;
+        }
+
+        #next-btn {
+            background-color: var(--puce-gold);
+            color: var(--puce-blue);
+            padding: 12px 25px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 1.1rem;
+            font-weight: 700;
+            box-shadow: 0 3px 0 #cc9900;
+            transition: transform 0.1s, box-shadow 0.1s;
+        }
+        
+        #next-btn:hover:not(:disabled) {
+             transform: translateY(-1px);
+             box-shadow: 0 4px 0 #cc9900;
+        }
+        
+        #next-btn:disabled {
+            background-color: #e0e0e0;
+            color: #666;
+            cursor: not-allowed;
+        }
+
+        /* Área de Resultados Finales */
+        #results-area {
+            font-size: 1.8rem;
+            margin-top: 30px;
+            padding: 20px;
+            border: 2px dashed var(--puce-blue);
+            border-radius: 8px;
+            color: var(--puce-blue);
+        }
+    </style>
+</head>
+<body>
+    <div class="quiz-container">
+        <h1>🏆 Data Transfiguration Challenge</h1>
+        <div id="question-area">¡Cargando Pregunta...!</div>
+        
+        <div id="options-container">
+            </div>
+
+        <div id="score-area">
+            Puntuación: <span id="score">0</span> / <span id="total-questions">10</span>
+        </div>
+
+        <button id="next-btn" disabled>Siguiente Pregunta</button>
+
+        <div id="results-area" style="display: none;"></div>
+    </div>
+
+    <script>
+        /* JavaScript Integrado (Lógica del Quiz) */
+        document.addEventListener('DOMContentLoaded', () => {
+            const quizData = [
+                {
+                    question: "¿Qué tipo de archivos DEBE contener la Capa **BRONZE** en nuestro Lakehouse, según la Arquitectura Medallion?",
+                    options: [
+                        "Datasets finales listos para Power BI",
+                        "Archivos crudos, sin modificaciones ni estructura (PDFs, Excels, CSVs)",
+                        "Tablas limpias y estandarizadas (Delta Lake)",
+                        "Solo archivos Parquet sin procesar"
+                    ],
+                    answer: 1 // Archivos crudos
+                },
+                {
+                    question: "¿Cuál es la principal tarea que realiza la Inteligencia Artificial (Gemini) en la Capa SILVER de nuestro pipeline?",
+                    options: [
+                        "Generar el informe final de Power BI",
+                        "Clasificación de documentos y Extracción de datos tabulares desde PDFs",
+                        "Crear el repositorio de GitHub",
+                        "Borrar la carpeta Gold antes de cada ejecución"
+                    ],
+                    answer: 1 // Clasificación/Extracción
+                },
+                {
+                    question: "¿Cuál es la regla de negocio fundamental que aplica la Capa GOLD para actualizar el Maestro de Precios (Lógica Self-Healing)?",
+                    options: [
+                        "Usar el precio promedio de las últimas 10 ventas",
+                        "El precio más alto registrado en el historial de ventas o cotizaciones es el que actualiza al Maestro",
+                        "El precio de lista debe ser igual al costo del proveedor",
+                        "Ignorar los precios nuevos y mantener el precio original del CSV"
+                    ],
+                    answer: 1 // Precio más alto
+                },
+                {
+                    question: "¿Qué formato de tabla final utilizamos para garantizar transaccionalidad y la velocidad DirectLake en Fabric?",
+                    options: [
+                        "CSV (Comma Separated Values)",
+                        "Delta Lake (Delta Table)",
+                        "JSON (JavaScript Object Notation)",
+                        "Parquet"
+                    ],
+                    answer: 1 // Delta Lake
+                },
+                {
+                    question: "¿Qué herramienta utilizamos en la WebApp (Backend) para subir archivos directamente a la Capa Bronze en Azure ADLS Gen2?",
+                    options: [
+                        "Azure Blob/Data Lake Storage SDK (Client Library)",
+                        "Boto3 (AWS SDK)",
+                        "Gemini API",
+                        "Python Request Library"
+                    ],
+                    answer: 0 // Azure SDK
+                },
+                {
+                    question: "¿Qué le sucede a los archivos PDF de Órdenes de Compra en la Capa BRONZE después de que el Notebook los procesa exitosamente?",
+                    options: [
+                        "Se eliminan para liberar espacio en el Data Lake",
+                        "Se mueve a una subcarpeta (archive/procesados) para evitar el reprocesamiento",
+                        "Se convierten a formato JSON y se dejan en Bronze",
+                        "Se guardan en el Lakehouse bajo el esquema de Tablas"
+                    ],
+                    answer: 1 // Mover a procesados
+                },
+                {
+                    question: "¿Qué motor de computación distribuida utiliza el Notebook de Fabric para ejecutar las transformaciones ETL?",
+                    options: [
+                        "SQL Server Management Studio (SSMS)",
+                        "Apache Spark (PySpark)",
+                        "Pandas (Python)",
+                        "Microsoft Excel"
+                    ],
+                    answer: 1 // Apache Spark
+                },
+                {
+                    question: "¿Cómo evita el código que 'Varilla 1/2' y 'Varilla 0.5' se traten como dos productos diferentes al hacer el JOIN?",
+                    options: [
+                        "La IA clasifica los productos por categoría",
+                        "Mediante la lógica de 'Fuzzy Matching' (Llave de Cruce agresiva)",
+                        "Utilizando la columna de Código de Producto (SKU)",
+                        "El sistema le pregunta al usuario"
+                    ],
+                    answer: 1 // Fuzzy Matching/Llave de Cruce
+                },
+                {
+                    question: "Si el pipeline falla al escribir en GOLD, pero el log muestra que Gemini sí extrajo los datos, ¿en qué capa se encuentra aún la información procesada?",
+                    options: [
+                        "En la Capa Bronze, porque el archivo crudo se mantiene ahí",
+                        "En la Capa Silver (ej. silver_senales_mercado)",
+                        "En el Azure Storage original, fuera del Lakehouse",
+                        "En la carpeta procesados"
+                    ],
+                    answer: 1 // Capa Silver
+                },
+                {
+                    question: "¿Qué endpoint de Fabric (vista SQL) permite a Power BI leer directamente las Tablas Gold sin necesidad de importar datos (modo DirectLake)?",
+                    options: [
+                        "La URL del Notebook",
+                        "El SQL Analytics Endpoint",
+                        "El API REST de Fabric",
+                        "El Azure Active Directory (AAD)"
+                    ],
+                    answer: 1 // SQL Analytics Endpoint
+                }
+            ];
+
+            let currentQuestion = 0;
+            let score = 0;
+
+            const questionArea = document.getElementById('question-area');
+            const optionsContainer = document.getElementById('options-container');
+            const scoreDisplay = document.getElementById('score');
+            const totalQuestionsDisplay = document.getElementById('total-questions');
+            const nextButton = document.getElementById('next-btn');
+            const resultsArea = document.getElementById('results-area');
+
+            totalQuestionsDisplay.textContent = quizData.length;
+
+            function loadQuestion() {
+                if (currentQuestion >= quizData.length) {
+                    showResults();
+                    return;
+                }
+
+                const data = quizData[currentQuestion];
+                questionArea.textContent = `${currentQuestion + 1}/${quizData.length}. ${data.question}`;
+                optionsContainer.innerHTML = '';
+                nextButton.disabled = true;
+
+                const correctOptionText = data.options[data.answer];
+                
+                data.options.forEach((optionText, index) => {
+                    const button = document.createElement('button');
+                    button.textContent = optionText;
+                    button.className = 'option-btn';
+                    
+                    const isCorrect = optionText === correctOptionText;
+                    
+                    button.onclick = () => selectOption(isCorrect, index);
+                    optionsContainer.appendChild(button);
+                });
+            }
+
+            function selectOption(isCorrect, selectedIndex) {
+                const buttons = optionsContainer.querySelectorAll('.option-btn');
+                
+                buttons.forEach(btn => btn.disabled = true);
+                
+                // Encontramos el botón correcto (el que tiene la respuesta correcta)
+                const correctButton = Array.from(buttons).find(btn => btn.textContent === quizData[currentQuestion].options[quizData[currentQuestion].answer]);
+                const selectedButton = buttons[selectedIndex];
+
+                if (isCorrect) {
+                    selectedButton.classList.add('correct');
+                    score++;
+                } else {
+                    selectedButton.classList.add('wrong');
+                    if (correctButton) {
+                        correctButton.classList.add('correct');
+                    }
+                }
+
+                scoreDisplay.textContent = score;
+                nextButton.disabled = false;
+            }
+
+            function showResults() {
+                questionArea.style.display = 'none';
+                optionsContainer.style.display = 'none';
+                nextButton.style.display = 'none';
+
+                let message = '';
+                const percentage = (score / quizData.length) * 100;
+
+                if (percentage >= 80) {
+                    message = `¡Felicidades! 🧙‍♂️ Resultado Épico: ${percentage.toFixed(0)}%. Dominas la Arquitectura Medallion.`;
+                    resultsArea.style.color = 'var(--success)';
+                } else if (percentage >= 50) {
+                    message = `Buen Trabajo. 🌟 Aprobado con ${percentage.toFixed(0)}%. Repasa las funciones de la IA.`;
+                    resultsArea.style.color = 'var(--puce-blue)';
+                } else {
+                    message = `Necesitas Repaso. ❌ Puntuación: ${percentage.toFixed(0)}%. ¡Vuelve al Notebook!`;
+                    resultsArea.style.color = 'var(--error)';
+                }
+
+                resultsArea.textContent = message;
+                resultsArea.style.display = 'block';
+            }
+
+            nextButton.onclick = () => {
+                currentQuestion++;
+                loadQuestion();
+            };
+
+            // Iniciar el quiz al cargar
+            loadQuestion();
+        });
+    </script>
+</body>
+</html>
